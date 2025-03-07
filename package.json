@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "workspaces": [
+    "cli",
+    "replay-script"
+  ],
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  },
+  "prettier": {
+    "semi": false
+  },
+  "dependencies": {
+    "@commander-js/extra-typings": "^13.1.0",
+    "@types/async": "^3.2.24",
+    "async": "^3.2.6",
+    "commander": "^13.1.0"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "cli",
+  "module": "src/cli.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "^3.5.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "replay-script": "workspace:*"
+  },
+  "scripts": {
+    "build": ""
+  }
+}
