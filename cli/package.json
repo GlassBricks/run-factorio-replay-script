@@ -15,6 +15,6 @@
     "replay-script": "workspace:*"
   },
   "scripts": {
-    "build": "bun build src/main.ts --compile --outfile out/replay-script"
+    "build-exec": "bun build src/main.ts --compile --outfile out/replay-script"
   }
 }

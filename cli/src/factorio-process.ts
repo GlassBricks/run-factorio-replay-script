@@ -81,7 +81,10 @@ export async function setupDataDirWithSave(
     force: true,
   })
   await mkDirIfNotExists(savesDir)
-  await writeZip(saveFile, path.resolve(savesDir, saveInfo.saveName + ".zip"))
+  await writeZip(saveFile, path.resolve(savesDir, saveInfo.saveName + ".zip"), {
+    // readonly
+    mode: 0o444,
+  })
   return saveInfo
 }
 

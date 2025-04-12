@@ -54,7 +54,11 @@ export async function getReplayVersion(zip: JSZip): Promise<string> {
   return `${major}.${minor}.${patch}`
 }
 
-export async function writeZip(zip: JSZip, path: string) {
+export async function writeZip(
+  zip: JSZip,
+  path: string,
+  options?: Parameters<typeof fs.writeFile>[2],
+): Promise<void> {
   const buffer = await zip.generateAsync({ type: "nodebuffer" })
-  await fs.writeFile(path, buffer)
+  await fs.writeFile(path, buffer, options)
 }

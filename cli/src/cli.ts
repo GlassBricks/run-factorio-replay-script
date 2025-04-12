@@ -133,6 +133,7 @@ Use --allow-any-mods to override this check.
   const exitCode2 = await factorio.waitForExit()
   stream.write("Factorio exited with code: " + exitCode2 + os.EOL)
   console.log("Done!")
+  console.log("Log file is at", logOutputFile)
 }
 
 export const cliCommand = new Command()

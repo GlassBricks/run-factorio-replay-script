@@ -15,5 +15,8 @@
     "@types/async": "^3.2.24",
     "async": "^3.2.6",
     "commander": "^13.1.0"
+  },
+  "scripts": {
+    "build": "tstl -p replay-script/tsconfig.json && cd cli && bun run build-exec"
   }
 }
