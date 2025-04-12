@@ -34,7 +34,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.platform }}
+          name: replay-script-${{ matrix.platform }}
           path: cli/dist/*
 
   release:
