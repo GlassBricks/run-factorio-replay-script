@@ -19,7 +19,7 @@ export async function setupFactorioDataDir(dir: string) {
 ; Automatically generated
 [path]
 read-data=__PATH__executable__/../../data
-write-data=/home/ben/IdeaProjects/replay-automation/instances/2.0.43
+write-data=${path.resolve(dir)}
 [general]
 locale=auto
 [other]
@@ -65,8 +65,6 @@ texture-compression-level=low-quality
     )
     if (content !== newContent) await fsp.writeFile(configFile, newContent)
   }
-
-  await mkDirIfNotExists(path.resolve(dir, "saves"))
 }
 
 export async function setupDataDirWithSave(
@@ -74,19 +72,24 @@ export async function setupDataDirWithSave(
   saveFile: JSZip,
   script: string = TheReplayScript,
 ) {
-  const saveName = await installReplayScript(saveFile, script)
+  const saveInfo = await installReplayScript(saveFile, script)
   await setupFactorioDataDir(dataDirPath)
-  await writeZip(
-    saveFile,
-    path.resolve(dataDirPath, "saves", saveName + ".zip"),
-  )
+  // clear saves dir
+  const savesDir = path.resolve(dataDirPath, "saves")
+  await fs.promises.rm(savesDir, {
+    recursive: true,
+    force: true,
+  })
+  await mkDirIfNotExists(savesDir)
+  await writeZip(saveFile, path.resolve(savesDir, saveInfo.saveName + ".zip"))
+  return saveInfo
 }
 
 export class FactorioProcess implements AsyncDisposable {
   lineEmitter: LineEmitter
   private exited = false
-  private exitResolve!: () => void
-  private exitedPromise: Promise<void> = new Promise<void>(
+  private exitResolve!: (code: number) => void
+  private exitedPromise: Promise<number> = new Promise<number>(
     (resolve) => (this.exitResolve = resolve),
   )
 
@@ -95,10 +98,10 @@ export class FactorioProcess implements AsyncDisposable {
   ) {
     this.lineEmitter = new LineEmitter(process.stdout)
 
-    this.process.on("exit", () => {
+    this.process.on("exit", (exitCode, signal) => {
       if (this.exited) return
       this.exited = true
-      this.exitResolve()
+      this.exitResolve(exitCode || 0)
     })
   }
 
@@ -106,7 +109,7 @@ export class FactorioProcess implements AsyncDisposable {
     this.process.kill(signal)
   }
 
-  waitForExit(): Promise<void> {
+  waitForExit(): Promise<number> {
     return this.exitedPromise
   }
 
@@ -131,7 +134,7 @@ export class FactorioProcess implements AsyncDisposable {
 export function launchFactorioChildProcess(
   factorioPath: string,
   dataDirPath: string,
-  launchArgs: string[] = [],
+  launchArgs: string[],
   shell: boolean,
 ) {
   launchArgs = launchArgs.concat([
@@ -148,7 +151,7 @@ export function launchFactorioChildProcess(
 export function launchFactorio(
   factorioPath: string,
   dataDirPath: string,
-  launchArgs: string[] | undefined,
+  launchArgs: string[],
   shell: boolean = false,
 ): FactorioProcess {
   const child = launchFactorioChildProcess(
@@ -158,4 +161,37 @@ export function launchFactorio(
     shell,
   )
   return new FactorioProcess(child)
+}
+
+interface ModOption {
+  name: string
+  enabled: boolean
+  version: string
+}
+
+interface ModListJson {
+  mods: ModOption[]
+}
+
+function getEnabledModsFromJson(modList: ModListJson): string[] {
+  const activeMods: string[] = []
+  for (const mod of modList.mods || []) {
+    // noinspection SuspiciousTypeOfGuard
+    if (mod.enabled && typeof mod.name === "string") {
+      activeMods.push(mod.name)
+    }
+  }
+  return activeMods
+}
+
+async function readModListJson(dataDirPath: string) {
+  const modListPath = path.join(dataDirPath, "mods", "mod-list.json")
+  const modList: ModListJson = JSON.parse(
+    await fs.promises.readFile(modListPath, "utf8"),
+  )
+  return modList
+}
+export async function getEnabledMods(dataDirPath: string): Promise<string[]> {
+  const modList = await readModListJson(dataDirPath)
+  return getEnabledModsFromJson(modList)
 }

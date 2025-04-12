@@ -13,6 +13,7 @@
   },
   "tstl": {
     "luaTarget": "5.2",
-    "noImplicitSelf": true
+    "noImplicitSelf": true,
+    "luaLibImport": "inline",
   },
 }

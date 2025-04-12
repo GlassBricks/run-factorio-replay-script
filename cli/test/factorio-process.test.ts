@@ -9,6 +9,7 @@ import {
 import * as path from "node:path"
 import * as fs from "node:fs/promises"
 import {
+  getEnabledMods,
   launchFactorio,
   launchFactorioChildProcess,
   setupDataDirWithSave,
@@ -65,7 +66,7 @@ test("setupDataDirWithSave", async () => {
   expect(await fs.exists(savePath)).toBe(true)
 })
 
-test("launchFactorio", async () => {
+test("launchFactorioChildProcess", async () => {
   const fakeFactorio = await createTestScript(`#!/usr/bin/env sh
 echo $@
 echo hi
@@ -98,6 +99,15 @@ echo three
   factorio.lineEmitter.on("line", (line) => lines.push(line))
   await factorio.waitForExit()
   expect(lines).toEqual(["-c", "one", "two", "three"])
+})
+
+test("launchFactorio exit code", async () => {
+  const fakeFactorio = await createTestScript(`#!/usr/bin/env sh
+   exit 2`)
+
+  const factorio = launchFactorio(fakeFactorio, dataDir, [])
+  const exitCode = await factorio.waitForExit()
+  expect(exitCode).toEqual(2)
 })
 
 test("factorio dispose", async () => {
@@ -141,4 +151,20 @@ echo BAD
   factorio.process.stdout.destroy()
   // ensure the process exited correctly
   expect(lines).toEqual(["HI", expect.anything()])
+})
+
+test("getEnabledMods", async () => {
+  const modListPath = path.resolve(dataDir, "mods/mod-list.json")
+  await fs.mkdir(path.dirname(modListPath), { recursive: true })
+  await fs.writeFile(
+    modListPath,
+    JSON.stringify({
+      mods: [
+        { name: "test-mod", enabled: true },
+        { name: "test-mod2", enabled: false },
+      ],
+    }),
+  )
+
+  expect(await getEnabledMods(dataDir)).toEqual(["test-mod"])
 })

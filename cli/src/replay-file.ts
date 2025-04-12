@@ -14,33 +14,32 @@ function findFileInReplayZip(
   return undefined
 }
 
+interface SaveInfo {
+  saveName: string
+  originalControlLua: string
+}
+
 export async function installReplayScript(
   zip: JSZip,
   replayScript: string,
-): Promise<string> {
+): Promise<SaveInfo> {
   const ctrlLuaFile = findFileInReplayZip(zip, "control.lua")
   if (!ctrlLuaFile) {
     throw new Error("Could not find control.lua")
   }
 
-  await writeReplayScript(zip, ctrlLuaFile, replayScript)
-  return ctrlLuaFile.name.split("/")[0]
+  const originalControlLua = await ctrlLuaFile.async("string")
+  const newControlLua = originalControlLua + "\n" + replayScript
+  zip.file(ctrlLuaFile.name, newControlLua)
+  const saveName = ctrlLuaFile.name.split("/")[0]
+  return {
+    saveName,
+    originalControlLua,
+  }
 }
 
-async function writeReplayScript(
-  zip: JSZip,
-  file: JSZip.JSZipObject,
-  replayScript: string,
-) {
-  zip.file(
-    file.name,
-    (await file.async("string")) +
-      `do
-${replayScript}
-end
-`,
-  )
-}
+export const freeplayCtrlLua =
+  "require('__base__/script/freeplay/control.lua')\n"
 
 export async function getReplayVersion(zip: JSZip): Promise<string> {
   const levelInit = findFileInReplayZip(zip, "level-init.dat")

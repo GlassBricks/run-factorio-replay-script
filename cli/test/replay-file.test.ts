@@ -3,6 +3,7 @@ import * as path from "node:path"
 import JSZip from "jszip"
 import * as fs from "node:fs/promises"
 import {
+  freeplayCtrlLua,
   getReplayVersion,
   installReplayScript,
   writeZip,
@@ -21,13 +22,16 @@ test("getReplayVersion", async () => {
 })
 
 test("installReplayScript", async () => {
-  const saveName = await installReplayScript(testZip, "-- example replay!")
-  expect(saveName).toBe(testZipName)
-  const controlLua = testZip.file(`${saveName}/control.lua`)!
+  const info = await installReplayScript(testZip, "-- example replay!")
+  expect(info).toEqual({
+    saveName: "TEST",
+    originalControlLua: freeplayCtrlLua,
+  })
+  const controlLua = testZip.file(`TEST/control.lua`)!
   expect(controlLua).toBeTruthy()
 
   const controlLuaContent = await controlLua.async("string")
-  expect(controlLuaContent).toContain("do\n-- example replay!\nend\n")
+  expect(controlLuaContent).toContain("\n-- example replay!")
 })
 
 test("writeZip", async () => {
