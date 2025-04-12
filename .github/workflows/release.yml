@@ -29,8 +29,6 @@ jobs:
       - name: Build for ${{ matrix.platform }}
         run: bun run build --target=bun-${{ matrix.platform }} --outfile=dist/${{ matrix.platform }}
 
-      - run: tree
-
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
