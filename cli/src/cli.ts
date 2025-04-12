@@ -43,7 +43,7 @@ export async function cliMain(
   factorioExecutables: string[],
   includeDefaultFactorioPaths: boolean,
   outputDir: string,
-  outFileName: string | undefined,
+  logFileName: string | undefined,
   saveFile: string,
   factorioArgs: string[] | undefined = [],
   allowAnyMods: boolean,
@@ -62,7 +62,7 @@ export async function cliMain(
   const logOutputFile = path.join(
     outputDir,
     "output",
-    outFileName ?? path.basename(saveFile, ".zip") + "-replay.log",
+    logFileName ?? path.basename(saveFile, ".zip") + "-replay.log",
   )
   await mkDirIfNotExists(path.dirname(logOutputFile))
   const saveInfo = await setupDataDirWithSave(factorioDataDir, saveZip)
@@ -136,33 +136,41 @@ Use --allow-any-mods to override this check.
 }
 
 export const cliCommand = new Command()
-  .argument("<save-file>", "Path to the replay file")
+  .addHelpText(
+    "before",
+    "Runs and analyzes a Factorio replay for speedrun.com admin stuff. This will install a script into a replay file that logs interesting events.\n" +
+      "Running this will launch Factorio in a isolated instance; YOU WILL THEN NEED TO MANUALLY START the replay (and not continue the save)!\n" +
+      "A log file then be outputted to (by default) ./output/<file-name>-replay.log\n",
+  )
+  .argument("<save-file>", "Path to the save file")
   .option(
-    "-o, --out <name>",
-    "Output file name for the log file. Defaults to same as zip name + -replay.log",
+    "-l, --log-name <name>",
+    'Output log file name. Defaults to save file name + "-replay.log"',
   )
   .option(
-    "-d, --directory <dir>",
-    "directory to use for outputs. Will create /outputs for log outputs, and /instances for Factorio instances/data directories",
+    "-o, --out <dir>",
+    "Output directory. Will create subdirectories /output for log files, and /instances for Factorio data directories",
     ".",
   )
   .option(
     "-f, --factorio <path>",
     "Path to a Factorio executable. Can be specified multiple times for multiple factorio versions. " +
-      "The first factorio a matching version will be used. Takes precedence over autodetected versions if applicable.",
+      "The first executable with a version matching the save file will be used. This takes precedence over autodetected versions.",
     (value: string, previous: string[]) => previous.concat(value),
   )
-  .option("--no-autodetect", "Do try to autodetect Factorio executables")
-  .option("--allow-any-mods", "Don't check for valid enabled mods", false)
-  .option("--allow-not-freeplay", "Allow non-freeplay scenario saves", false)
-  .argument("[factorio args...]")
+  .option("--no-autodetect", "Do not try to autodetect Factorio executables")
+  .option("--allow-any-mods", "Allow any set of mods enabled in save", false)
+  .option("--allow-not-freeplay", "Allow non-freeplay scenario", false)
+  .argument("[factorio args...]", "Additional arguments to pass to factorio")
   .passThroughOptions()
+  .showHelpAfterError()
+  .showSuggestionAfterError()
   .action((saveFile, factorioArgs, options) =>
     cliMain(
       options.factorio ?? [],
       options.autodetect,
-      path.resolve(options.directory),
-      options.out,
+      path.resolve(options.out),
+      options.logName,
       path.resolve(saveFile),
       factorioArgs,
       options.allowAnyMods,
