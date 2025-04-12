@@ -13,6 +13,7 @@ import { findFactorioMatchingVersion } from "./factorio-versions.ts"
 import JSZip from "jszip"
 import { freeplayCtrlLua, getReplayVersion } from "./replay-file.ts"
 import type { WriteStream } from "node:fs"
+import packageJson from "../package.json" assert { type: "json" }
 
 export function recordReplayLinesToFile(
   lineEmitter: LineEmitter,
@@ -143,6 +144,7 @@ export const cliCommand = new Command()
       "Running this will launch Factorio in a isolated instance; YOU WILL THEN NEED TO MANUALLY START the replay (and not continue the save)!\n" +
       "A log file then be outputted to (by default) ./output/<file-name>-replay.log\n",
   )
+  .version(packageJson.version)
   .argument("<save-file>", "Path to the save file")
   .option(
     "-l, --log-name <name>",
