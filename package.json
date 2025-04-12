@@ -17,6 +17,6 @@
     "commander": "^13.1.0"
   },
   "scripts": {
-    "build": "tstl -p replay-script/tsconfig.json && cd cli && bun run build-exec"
+    "build": "tstl -p replay-script/tsconfig.json && bun run --cwd cli build-exec"
   }
 }
