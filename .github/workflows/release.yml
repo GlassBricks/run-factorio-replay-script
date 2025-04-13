@@ -30,13 +30,15 @@ jobs:
         run: bun i
 
       - name: Build for ${{ matrix.platform }}
-        run: bun run build --target=bun-${{ matrix.platform }} --outfile=dist/${{ matrix.platform }}
+        run: bun run build --target=bun-${{ matrix.platform }} --outfile=dist/replay-script
+
+      - run: zip replay-script-${{ matrix.platform }}.zip -j cli/dist/*
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: replay-script-${{ matrix.platform }}
-          path: cli/dist/*
+          path: replay-script-${{ matrix.platform }}.zip
 
   release:
     needs: build
@@ -53,4 +55,4 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*
+          files: artifacts/**/*
