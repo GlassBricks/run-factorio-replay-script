@@ -14,7 +14,7 @@ function findFileInReplayZip(
   return undefined
 }
 
-interface SaveInfo {
+export interface SaveInfo {
   saveName: string
   originalControlLua: string
 }

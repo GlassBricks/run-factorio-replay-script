@@ -56,13 +56,23 @@ export async function findFactorioMatchingVersion(
       defaultFactorioLookupPaths(),
     )
   }
+  const pathToVersion = new Map<string, string>()
   const result: string | undefined = await async.findSeries(
     userProvidedExecutables,
-    async (e) => (await tryGetFactorioVersion(e)) === version,
+    async (path) => {
+      const thisVersion = await tryGetFactorioVersion(path)
+      if (thisVersion) {
+        pathToVersion.set(path, thisVersion)
+      }
+      return version === thisVersion
+    },
   )
   if (result == undefined) {
+    const factorioVersionStrs = Array.from(pathToVersion.entries())
+      .map(([path, version]) => `${path}: ${version ?? "invalid"}`)
+      .join("\n")
     throw new Error(
-      `Could not find Factorio executable with version ${version}. Tried:\n${userProvidedExecutables.join("\n")}`,
+      `Failed to find factorio with version ${version}. Tried:\n${factorioVersionStrs}`,
     )
   }
   return result
