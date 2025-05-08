@@ -101,10 +101,11 @@ export class FactorioProcess implements AsyncDisposable {
   ) {
     this.lineEmitter = new LineEmitter(process.stdout)
 
-    this.process.on("exit", (exitCode, signal) => {
+    this.process.on("exit", (exitCode) => {
       if (this.exited) return
       this.exited = true
       this.exitResolve(exitCode || 0)
+      console.log("Factorio process exited with code", exitCode)
     })
   }
 
@@ -121,7 +122,8 @@ export class FactorioProcess implements AsyncDisposable {
       / *\d+\.\d+ +Info AppManager.cpp:\d+: Deleting active scenario\./
     this.lineEmitter.on("line", (line: string) => {
       if (closeEvent.test(line)) {
-        this.kill("SIGTERM")
+        console.log("Replay done, closing factorio")
+        this.kill()
       }
     })
   }
@@ -138,7 +140,6 @@ export function launchFactorioChildProcess(
   factorioPath: string,
   dataDirPath: string,
   launchArgs: string[],
-  shell: boolean,
 ) {
   launchArgs = launchArgs.concat([
     "-c",
@@ -146,7 +147,7 @@ export function launchFactorioChildProcess(
   ])
   console.log("Launching factorio with args", ...launchArgs)
   return child_process.spawn(factorioPath, launchArgs, {
-    shell,
+    shell: false,
     stdio: ["inherit", "pipe", "inherit"],
   })
 }
@@ -161,7 +162,6 @@ export function launchFactorio(
     factorioPath,
     dataDirPath,
     launchArgs,
-    shell,
   )
   return new FactorioProcess(child)
 }

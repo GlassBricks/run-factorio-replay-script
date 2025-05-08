@@ -75,7 +75,7 @@ echo hi
     fakeFactorio,
     dataDir,
     [],
-    false,
+
   )
   let out = ""
   process.stdout.on("data", (chunk: Buffer) => {
