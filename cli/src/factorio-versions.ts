@@ -9,7 +9,7 @@ export async function tryGetFactorioVersion(
     const output = child_process.spawnSync(executable, ["--version"], {
       encoding: "utf8",
       timeout: 1000,
-      shell: true,
+      windowsVerbatimArguments: true,
     }).stdout
     const match = output.match(/Version: (\d+\.\d+\.\d+)/)
     if (match && match[1]) {

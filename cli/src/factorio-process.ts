@@ -149,6 +149,7 @@ export function launchFactorioChildProcess(
   return child_process.spawn(factorioPath, launchArgs, {
     shell: false,
     stdio: ["inherit", "pipe", "inherit"],
+    windowsVerbatimArguments: true,
   })
 }
 
@@ -156,7 +157,6 @@ export function launchFactorio(
   factorioPath: string,
   dataDirPath: string,
   launchArgs: string[],
-  shell: boolean = false,
 ): FactorioProcess {
   const child = launchFactorioChildProcess(
     factorioPath,

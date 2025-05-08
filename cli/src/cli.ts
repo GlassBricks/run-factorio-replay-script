@@ -41,7 +41,8 @@ export const cliCommand = new Command()
     "-f, --factorio <path>",
     "Path to a Factorio executable. Can be specified multiple times for multiple factorio versions. " +
       "The first executable with a version matching the save file will be used. This takes precedence over autodetected versions.",
-    (value: string, previous: string[]) => previous.concat(value),
+    (value: string, previous: string[] | undefined) =>
+      (previous || []).concat(value),
   )
   .option("--no-autodetect", "Do not try to autodetect Factorio executables")
   .option("--allow-any-mods", "Allow any set of mods enabled in save", false)
@@ -50,18 +51,26 @@ export const cliCommand = new Command()
   .passThroughOptions()
   .showHelpAfterError()
   .showSuggestionAfterError()
-  .action((saveFile, factorioArgs, options) =>
-    cliMain(
+  .action((saveFile, factorioArgs, options) => {
+    return cliMain(
       options.factorio ?? [],
       options.autodetect,
       path.resolve(options.out),
       options.logName,
-      path.resolve(saveFile),
+      path.resolve(removeQuotes(saveFile)),
       factorioArgs,
       options.allowAnyMods,
       options.allowNotFreeplay,
-    ),
-  )
+    )
+  })
+
+function removeQuotes(str: string) {
+  if (str.startsWith('"') && str.endsWith('"')) {
+    return str.substring(1, str.length - 1)
+  }
+  return str
+}
+
 
 async function cliMain(
   factorioExecutables: string[],
@@ -82,6 +91,7 @@ async function cliMain(
     includeDefaultFactorioPaths,
     factorioVersion,
   )
+  console.log("Using Factorio executable at:", factorioPath)
   const factorioDataDir = path.join(outputDir, "instances", factorioVersion)
   const saveInfo = await setupDataDirWithSave(factorioDataDir, saveFile)
 
@@ -133,7 +143,7 @@ async function syncMods(
     factorioPath,
     factorioDataDir,
     syncModsFactorioArgs,
-    true,
+
   )
   syncModsProcess.lineEmitter.on("line", console.log)
   const exitCode = await syncModsProcess.waitForExit()
@@ -187,7 +197,7 @@ async function launchFactorioReplay(
     factorioPath,
     factorioDataDir,
     factorioArgs,
-    true,
+
   )
   factorio.lineEmitter.on("line", console.log)
 

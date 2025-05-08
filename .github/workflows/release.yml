@@ -12,6 +12,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.ref_name || 'dev' }}
     strategy:
       matrix:
         platform: [ windows-x64, linux-x64, linux-arm64, darwin-x64, darwin-arm64 ]
@@ -32,13 +34,13 @@ jobs:
       - name: Build for ${{ matrix.platform }}
         run: bun run build --target=bun-${{ matrix.platform }} --outfile=dist/replay-script
 
-      - run: zip replay-script-${{ matrix.platform }}.zip -j cli/dist/*
+      - run: zip replay-script-${{ matrix.platform }}-${{ env.VERSION }}.zip -j cli/dist/*
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: replay-script-${{ matrix.platform }}
-          path: replay-script-${{ matrix.platform }}.zip
+          name: replay-script-${{ matrix.platform }}-${{ env.VERSION }}
+          path: replay-script-${{ matrix.platform }}-${{ env.VERSION }}.zip
 
   release:
     needs: build
